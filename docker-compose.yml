@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - kv_data:/app/data
+    environment:
+      - MASTER_API_KEY=${MASTER_API_KEY}
+    restart: always
+
+  my-backup-unit:
+    image: peterrus/s3-cron-backup
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET_URL=s3://name-of-your-bucket/
+      - AWS_DEFAULT_REGION=your-aws-region
+      - CRON_SCHEDULE=0 * * * * # run every hour
+      - BACKUP_NAME=kvestbackup
+    volumes:
+      - /kvest_data:/data:ro #use ro to make sure the volume gets mounted read-only
+    restart: always
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: always
+
+volumes:
+  kvest_data:
+  caddy_data:
+  caddy_config:
