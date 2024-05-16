@@ -14,13 +14,6 @@ import (
 
 const dataPath = "./data/"
 
-func RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/api/{bucketName}", CreateBucket).Methods("PUT")
-	r.HandleFunc("/api/{bucketName}/{key}", SetKey).Methods("PUT")
-	r.HandleFunc("/api/{bucketName}/{key}", GetValue).Methods("GET")
-	r.HandleFunc("/api/{bucketName}/{key}", DeleteKey).Methods("DELETE")
-}
-
 func CreateBucket(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]

@@ -16,7 +16,7 @@ const dataPath = "./data/"
 const usersDbPath = dataPath + "users.db"
 
 func StartBot() {
-	userDB, err := bbolt.Open(usersDbPath, 0666, nil)
+	/*userDB, err := bbolt.Open(usersDbPath, 0666, nil)
 	if err != nil {
 		log.Fatalf("Could not open users db: %s", err)
 	}
@@ -25,7 +25,7 @@ func StartBot() {
 	userDB.Update(func(tx *bbolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte("users"))
 		return err
-	})
+	})*/
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 	if err != nil {
@@ -45,17 +45,26 @@ func StartBot() {
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
 			case "create_kv":
-				handleCreateKV(bot, userDB, update.Message)
+				handleCreateKV(bot, update.Message)
 
 			case "change_api_key":
-				handleChangeApiKey(bot, userDB, update.Message)
+				handleChangeApiKey(bot, update.Message)
 			}
 		}
 	}
 }
 
-func handleCreateKV(bot *tgbotapi.BotAPI, db *bbolt.DB, msg *tgbotapi.Message) {
+func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
+
+	// Open the database connection
+	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	if err != nil {
+		log.Printf("Error opening database: %s", err)
+		return
+	}
+	defer db.Close()
+
 	var apiKey string
 
 	db.View(func(tx *bbolt.Tx) error {
@@ -87,8 +96,17 @@ func handleCreateKV(bot *tgbotapi.BotAPI, db *bbolt.DB, msg *tgbotapi.Message) {
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
 }
 
-func handleChangeApiKey(bot *tgbotapi.BotAPI, db *bbolt.DB, msg *tgbotapi.Message) {
+func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
+
+	// Open the database connection
+	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	if err != nil {
+		log.Printf("Error opening database: %s", err)
+		return
+	}
+	defer db.Close()
+
 	var oldApiKey string
 
 	db.View(func(tx *bbolt.Tx) error {
