@@ -46,7 +46,7 @@ export BOT_TOKEN=<YOUR_TOKEN>  && go build && ./kvest
     - API-Key: {user's API key}
 
 ## Project Structure
-
+```
 ./project
 ├── go.mod
 ├── go.sum
@@ -56,7 +56,7 @@ export BOT_TOKEN=<YOUR_TOKEN>  && go build && ./kvest
 ├── telegram_bot.go
 ├── api
     └── api.go
-
+```
 ## Requirements
 
 - Go 1.16 or later
