@@ -2,26 +2,22 @@ package api
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/gorilla/mux"
 	"go.etcd.io/bbolt"
 )
 
-const dataPath = "./data/"
+var dataPath = "./data/"
 
-func RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/api/{bucketName}", CreateBucket).Methods("PUT")
-	r.HandleFunc("/api/{bucketName}/{key}", SetKey).Methods("PUT")
-	r.HandleFunc("/api/{bucketName}/{key}", GetValue).Methods("GET")
-	r.HandleFunc("/api/{bucketName}/{key}", DeleteKey).Methods("DELETE")
+// SetDataPath sets the path for data
+func SetDataPath(path string) {
+	dataPath = path
 }
 
-func CreateBucket(w http.ResponseWriter, r *http.Request) {
+func createBucket(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]
 
@@ -44,7 +40,7 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func SetKey(w http.ResponseWriter, r *http.Request) {
+func setKey(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]
 	key := vars["key"]
@@ -82,7 +78,7 @@ func SetKey(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func GetValue(w http.ResponseWriter, r *http.Request) {
+func getValue(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]
 	key := vars["key"]
@@ -116,7 +112,7 @@ func GetValue(w http.ResponseWriter, r *http.Request) {
 	w.Write(value)
 }
 
-func DeleteKey(w http.ResponseWriter, r *http.Request) {
+func deleteKey(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]
 	key := vars["key"]
@@ -152,26 +148,4 @@ func openDb(r *http.Request) (*bbolt.DB, error) {
 	}
 
 	return bbolt.Open(dbFile, 0666, nil)
-}
-
-func ApiKeyMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		apiKey := r.Header.Get("API-Key")
-		if apiKey == "" {
-			http.Error(w, "Missing API key", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func LoggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		log.Printf("Started %s %s for %s", r.Method, r.RequestURI, r.RemoteAddr)
-
-		next.ServeHTTP(w, r)
-
-		log.Printf("Completed %s %s in %v", r.Method, r.RequestURI, time.Since(start))
-	})
 }

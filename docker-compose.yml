@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+  api:
+    build: .
+    volumes:
+      - /kvest_data:/app/data
+    env_file:
+      - .env
+    restart: always
+
+  my-backup-unit:
+    image: peterrus/s3-cron-backup
+    env_file:
+      - .backuper.env
+    environment:
+      - CRON_SCHEDULE=*/24 * * * *
+      - BACKUP_NAME=kvestbackup
+    volumes:
+      - /kvest_data:/data:ro #use ro to make sure the volume gets mounted read-only
+    restart: always
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    restart: always
+
+volumes:
+  kvest_data:
+  caddy_data:
+  caddy_config:
