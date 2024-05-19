@@ -1,8 +1,6 @@
 package api
 
 import (
-	"crypto/rand"
-	"encoding/hex"
 	"encoding/json"
 	"net/http"
 	"os"
@@ -11,10 +9,15 @@ import (
 	"go.etcd.io/bbolt"
 )
 
-const usersDbPath = "./data/users.db"
+var usersDbPath = "./data/users.db"
+
+// SetUsersDbPath sets the path for users database
+func SetUsersDbPath(path string) {
+	usersDbPath = path
+}
 
 // CreateKV handles the creation of a new KV store and generates an API key for the user.
-func CreateKV(w http.ResponseWriter, r *http.Request) {
+func createKV(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -34,6 +37,9 @@ func CreateKV(w http.ResponseWriter, r *http.Request) {
 	var apiKey string
 	db.View(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket([]byte("users"))
+		if bucket == nil {
+			return nil
+		}
 		apiKey = string(bucket.Get([]byte(req.Name)))
 		return nil
 	})
@@ -50,7 +56,10 @@ func CreateKV(w http.ResponseWriter, r *http.Request) {
 	}
 
 	db.Update(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
+		bucket, err := tx.CreateBucketIfNotExists([]byte("users"))
+		if err != nil {
+			return err
+		}
 		return bucket.Put([]byte(req.Name), []byte(apiKey))
 	})
 
@@ -62,7 +71,7 @@ func CreateKV(w http.ResponseWriter, r *http.Request) {
 }
 
 // ChangeApiKey changes the user's API key and renames the database file.
-func ChangeApiKey(w http.ResponseWriter, r *http.Request) {
+func changeApiKey(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		Name string `json:"name"`
 	}
@@ -82,6 +91,9 @@ func ChangeApiKey(w http.ResponseWriter, r *http.Request) {
 	var oldApiKey string
 	db.View(func(tx *bbolt.Tx) error {
 		bucket := tx.Bucket([]byte("users"))
+		if bucket == nil {
+			return bbolt.ErrBucketNotFound
+		}
 		oldApiKey = string(bucket.Get([]byte(req.Name)))
 		return nil
 	})
@@ -113,23 +125,4 @@ func ChangeApiKey(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{"api_key": newApiKey}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
-}
-
-func MasterKeyMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		masterKey := r.Header.Get("MASTER-API-KEY")
-		if masterKey == "" || masterKey != os.Getenv("MASTER_API_KEY") {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-		next.ServeHTTP(w, r)
-	})
-}
-
-func generateAPIKey() (string, error) {
-	bytes := make([]byte, 16)
-	if _, err := rand.Read(bytes); err != nil {
-		return "", err
-	}
-	return hex.EncodeToString(bytes), nil
 }

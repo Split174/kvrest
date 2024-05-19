@@ -29,12 +29,12 @@ func main() {
 
 	// Define the subrouter for admin with master key middleware
 	adminRouter := router.PathPrefix("/admin").Subrouter()
-	RegisterAdminRoutes(adminRouter)
+	api.RegisterAdminRoutes(adminRouter)
 	adminRouter.Use(api.MasterKeyMiddleware)
 
 	// Define the subrouter for API with both middlewares
 	apiRouter := router.PathPrefix("/api").Subrouter()
-	RegisterRoutes(apiRouter)
+	api.RegisterRoutes(apiRouter)
 	apiRouter.Use(api.ApiKeyMiddleware)
 
 	// Apply Logging Middleware to all routes
@@ -42,16 +42,4 @@ func main() {
 
 	log.Println("Server running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
-}
-
-func RegisterRoutes(r *mux.Router) {
-	r.HandleFunc("/{bucketName}", api.CreateBucket).Methods("PUT")
-	r.HandleFunc("/{bucketName}/{key}", api.SetKey).Methods("PUT")
-	r.HandleFunc("/{bucketName}/{key}", api.GetValue).Methods("GET")
-	r.HandleFunc("/{bucketName}/{key}", api.DeleteKey).Methods("DELETE")
-}
-
-func RegisterAdminRoutes(r *mux.Router) {
-	r.HandleFunc("/create_kv", api.CreateKV).Methods("PUT")
-	r.HandleFunc("/change_api_key", api.ChangeApiKey).Methods("PUT")
 }
