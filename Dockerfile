@@ -1,5 +1,5 @@
 # Use the official Golang image to create a build artifact
-FROM golang:1.17-alpine AS builder
+FROM golang:1.21-alpine AS builder
 
 # Set the Current Working Directory inside the container
 WORKDIR /app
@@ -14,15 +14,17 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o main .
+RUN go build -o kvest .
 
 # Start a new stage from scratch
 FROM alpine:latest  
 
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/main .
+COPY --from=builder /app/kvest .
 #COPY --from=builder /app/data ./data
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
+
+CMD ["./kvest"]
