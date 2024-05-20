@@ -20,6 +20,7 @@ func createBucket(w http.ResponseWriter, r *http.Request) {
 
 	if bucketName == "system" {
 		http.Error(w, "Bucket name 'system' not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
 	db, err := openDb(r)
