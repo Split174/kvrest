@@ -27,11 +27,6 @@ func main() {
 	// Define the main router
 	router := mux.NewRouter()
 
-	// Define the subrouter for admin with master key middleware
-	adminRouter := router.PathPrefix("/admin").Subrouter()
-	api.RegisterAdminRoutes(adminRouter)
-	adminRouter.Use(api.MasterKeyMiddleware)
-
 	// Define the subrouter for API with both middlewares
 	apiRouter := router.PathPrefix("/api").Subrouter()
 	api.RegisterRoutes(apiRouter)

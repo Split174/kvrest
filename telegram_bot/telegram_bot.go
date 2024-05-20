@@ -4,16 +4,16 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"go.etcd.io/bbolt"
 )
 
 const dataPath = "./data/"
-const usersDbPath = dataPath + "users.db"
 
 func StartBot() {
 	/*userDB, err := bbolt.Open(usersDbPath, 0666, nil)
@@ -57,67 +57,51 @@ func StartBot() {
 func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
 
-	// Open the database connection
-	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	// Construct the filename prefix based on the user's ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	// Check if any file starting with the constructed prefix exists
+	files, err := ioutil.ReadDir(dataPath)
 	if err != nil {
-		log.Printf("Error opening database: %s", err)
-		return
+		log.Fatal(err)
 	}
-	defer db.Close()
-
-	var apiKey string
-
-	db.View(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		apiKey = string(bucket.Get([]byte(fmt.Sprintf("%d", userID))))
-		return nil
-	})
-
-	if apiKey != "" {
-		response := "You already have an API key. Use /change_api_key to change it."
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
-		return
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "A KV alredy exist. Use /change_api_key"))
+			return
+		}
 	}
 
-	newApiKey, err := generateAPIKey()
+	apiKey, err := generateAPIKey()
 	if err != nil {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to generate API key"))
 		return
 	}
 
-	db.Update(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		return bucket.Put([]byte(fmt.Sprintf("%d", userID)), []byte(newApiKey))
-	})
+	os.OpenFile(filepath.Join(dataPath, fmt.Sprintf("%d-%s.db", userID, apiKey)), os.O_RDONLY|os.O_CREATE, 0666)
 
-	os.OpenFile(filepath.Join(dataPath, newApiKey+".db"), os.O_RDONLY|os.O_CREATE, 0666)
-
-	response := fmt.Sprintf("Your API key is: %s", newApiKey)
+	response := fmt.Sprintf("Your API key is: %s", fmt.Sprintf("%d-%s", userID, apiKey))
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
 }
 
 func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
 
-	// Open the database connection
-	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
 	if err != nil {
-		log.Printf("Error opening database: %s", err)
-		return
+		log.Fatal(err)
 	}
-	defer db.Close()
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
 
-	var oldApiKey string
-
-	db.View(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		oldApiKey = string(bucket.Get([]byte(fmt.Sprintf("%d", userID))))
-		return nil
-	})
-
-	if oldApiKey == "" {
-		response := "You don't have an existing API key. Use /create_kv to create one."
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /create_kv"))
 		return
 	}
 
@@ -127,20 +111,15 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		return
 	}
 
-	db.Update(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		return bucket.Put([]byte(fmt.Sprintf("%d", userID)), []byte(newApiKey))
-	})
-
-	oldDbFile := filepath.Join(dataPath, oldApiKey+".db")
-	newDbFile := filepath.Join(dataPath, newApiKey+".db")
+	oldDbFile := filepath.Join(dataPath, userDB)
+	newDbFile := filepath.Join(dataPath, fmt.Sprintf("%d-%s.db", userID, newApiKey))
 	err = os.Rename(oldDbFile, newDbFile)
 	if err != nil {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to rename database file"))
 		return
 	}
 
-	response := fmt.Sprintf("Your new API key is: %s", newApiKey)
+	response := fmt.Sprintf("Your new API key is: %s", fmt.Sprintf("%d-%s", userID, newApiKey))
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
 }
 
