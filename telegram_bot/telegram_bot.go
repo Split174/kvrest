@@ -35,6 +35,9 @@ func StartBot() {
 
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
+			case "docs":
+				handleDocs(bot, update.Message)
+
 			case "create_kv":
 				handleCreateKV(bot, update.Message)
 
@@ -86,8 +89,10 @@ func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	defer db.Close()
 
-	response := fmt.Sprintf("Your API key is: %s", fmt.Sprintf("%d-%s", userID, apiKey))
-	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	response := fmt.Sprintf("Your API key is: `%s`", fmt.Sprintf("%d-%s", userID, apiKey))
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "Markdown"
+	bot.Send(responseMsg)
 }
 
 func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
@@ -125,8 +130,10 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		return
 	}
 
-	response := fmt.Sprintf("Your new API key is: %s", fmt.Sprintf("%d-%s", userID, newApiKey))
-	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	response := fmt.Sprintf("Your new API key is: `%s`", fmt.Sprintf("%d-%s", userID, newApiKey))
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "Markdown"
+	bot.Send(responseMsg)
 }
 
 func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
@@ -277,4 +284,30 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error sending database file: %s", err.Error())))
 		return
 	}
+}
+
+func handleDocs(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	response := `<b>/docs</b>
+Displays the documentation for all available commands to the user.
+
+<b>/create_kv</b>
+Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.
+
+<b>/change_api_key</b>
+Allows the user to change their existing API key. It generates a new API key, renames the BoltDB file with the new key, and sends the new API key to the user.
+
+<b>/view_bucket_keys</b>
+Allows the user to view the keys stored in a specific bucket within their KV store. The user needs to provide the name of the bucket they want to view.
+
+<i>Usage:</i> <code>/view_bucket <b>BUCKET_NAME</b></code>
+
+<b>/list_buckets</b>
+Lists all the buckets that the user has created in their KV store.
+
+<b>/download_kv</b>
+Allows the user to download their entire KV store as a BoltDB file. The bot will send the file directly to the user.`
+	fmt.Print("asdasd")
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "HTML"
+	bot.Send(responseMsg)
 }
