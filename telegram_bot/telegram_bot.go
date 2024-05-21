@@ -41,8 +41,8 @@ func StartBot() {
 			case "change_api_key":
 				handleChangeApiKey(bot, update.Message)
 
-			case "view_bucket":
-				handleViewBucket(bot, update.Message)
+			case "view_bucket_keys":
+				handleViewBucketKeys(bot, update.Message)
 
 			case "list_buckets":
 				handleListBuckets(bot, update.Message)
@@ -126,7 +126,7 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
 }
 
-func handleViewBucket(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
 	fileNamePrefix := fmt.Sprintf("%d-", userID)
 
@@ -170,8 +170,8 @@ func handleViewBucket(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		}
 
 		c := b.Cursor()
-		for k, v := c.First(); k != nil; k, v = c.Next() {
-			bucketContent += fmt.Sprintf("Key: %s, Value: %s\n", k, v)
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			bucketContent += fmt.Sprintf("%s\n", k)
 		}
 		return nil
 	})
