@@ -14,14 +14,11 @@ import (
 
 var dataPath = "./data/"
 
+const reservedBucket = "kvest-system-internal"
+
 func createBucket(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	bucketName := vars["bucketName"]
-
-	if bucketName == "system" {
-		http.Error(w, "Bucket name 'system' not allowed", http.StatusMethodNotAllowed)
-		return
-	}
 
 	db, err := openDb(r)
 	if err != nil {
@@ -176,6 +173,19 @@ func ApiKeyMiddleware(next http.Handler) http.Handler {
 		apiKey := r.Header.Get("API-KEY")
 		if apiKey == "" {
 			http.Error(w, "Missing API key", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func DisableSystemBucketMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		bucketName := vars["bucketName"]
+
+		if bucketName == reservedBucket {
+			http.Error(w, "Bucket name 'system' not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 		next.ServeHTTP(w, r)

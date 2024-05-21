@@ -29,6 +29,7 @@ func setupDatabase() error {
 	apiKey = "test-api-key"
 	os.OpenFile(filepath.Join(tempDir, fmt.Sprintf("%s.db", apiKey)), os.O_RDONLY|os.O_CREATE, 0666)
 	RegisterRoutes(userRouter)
+	userRouter.Use(DisableSystemBucketMiddleware)
 	return nil
 }
 
@@ -103,7 +104,7 @@ func TestE2E(t *testing.T) {
 	}
 
 	// Create a system bucket
-	req = httptest.NewRequest("PUT", "/system", nil)
+	req = httptest.NewRequest("PUT", "/"+reservedBucket, nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
 	userRouter.ServeHTTP(w, req)

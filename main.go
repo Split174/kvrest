@@ -31,7 +31,7 @@ func main() {
 	apiRouter := router.PathPrefix("/api").Subrouter()
 	api.RegisterRoutes(apiRouter)
 	apiRouter.Use(api.ApiKeyMiddleware)
-
+	apiRouter.Use(api.DisableSystemBucketMiddleware)
 	// Apply Logging Middleware to all routes
 	router.Use(api.LoggingMiddleware)
 
