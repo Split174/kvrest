@@ -46,6 +46,9 @@ func StartBot() {
 
 			case "list_buckets":
 				handleListBuckets(bot, update.Message)
+
+			case "download_kv":
+				handleDownloadKV(bot, update.Message)
 			}
 		}
 	}
@@ -242,4 +245,36 @@ func generateAPIKey() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
+
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		return
+	}
+
+	dbPath := filepath.Join(dataPath, userDB)
+
+	// Send the database file
+	doc := tgbotapi.NewDocument(msg.Chat.ID, tgbotapi.FilePath(dbPath))
+	_, err = bot.Send(doc)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error sending database file: %s", err.Error())))
+		return
+	}
 }
