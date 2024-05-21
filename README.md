@@ -15,8 +15,9 @@ This project provides a key-value storage API using Go and bbolt to store the da
 
 ## Why?
 
-**Because I can**. I'm tired of mongo/postgresql/etc support for my small projects. Endless choice of providers, headache with migration to your servers, etc.
-(I also wanted to practice golang)
+**Because I can**. I'm tired of mongo/postgresql/etc support for my small projects. Endless choice of providers, headache with migration to your servers, etc. (I also wanted to practice golang)
+
+**Make coding fun again.**
 
 ## Cloud usage
 
