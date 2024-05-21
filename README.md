@@ -1,6 +1,22 @@
 # Key-Value Store API with Telegram Bot Integration
 
-This project provides a key-value store API using Go and bbolt for database storage. Users can create and modify their API keys via a Telegram bot. Each user has their own separate database file.
+This project provides a key-value storage API using Go and bbolt to store the database. Users **can create their own key-value store via Telegram**. With the ability to **easily transfer storage to your server**.
+
+# Table of Contents
+
+0. [Why?](#why)
+1. [Cloud usage](#cloud-usage)
+2. [Telegram Bot Commands](#telegram-bot-commands)
+3. [API Endpoints](#api-endpoints)
+4. [Migrate on your server](#migrate-on-your-server)
+5. [Project Structure](#project-structure)
+6. [Requirements](#requirements)
+7. [Dependencies](#dependencies)
+
+## Why?
+
+**Because I can**. I'm tired of mongo/postgresql/etc support for my small projects. Endless choice of providers, headache with migration to your servers, etc.
+(I also wanted to practice golang)
 
 ## Cloud usage
 
