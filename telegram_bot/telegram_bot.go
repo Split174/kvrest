@@ -70,7 +70,11 @@ func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), fileNamePrefix) {
-			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "A KV already exists. Use /change_api_key"))
+			apiKey := strings.Replace(file.Name(), ".db", "", 1)
+			response := fmt.Sprintf("A KV already exists. Your API key: `%s`", apiKey)
+			responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+			responseMsg.ParseMode = "Markdown"
+			bot.Send(responseMsg)
 			return
 		}
 	}
@@ -287,6 +291,20 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 }
 
 func handleDocs(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userDB := "YOUR-API-KEY"
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
+
 	response := `<b>/docs</b>
 Displays the documentation for all available commands to the user.
 
@@ -305,8 +323,24 @@ Allows the user to view the keys stored in a specific bucket within their KV sto
 Lists all the buckets that the user has created in their KV store.
 
 <b>/download_kv</b>
-Allows the user to download their entire KV store as a BoltDB file. The bot will send the file directly to the user.`
-	fmt.Print("asdasd")
+Allows the user to download their entire KV store as a BoltDB file. The bot will send the file directly to the user.
+
+<b>API Examples</b>
+
+Create bucket
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName</code>
+
+Delete bucket
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName</code>
+
+Create/Update Key-Value pair in bucket
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvest.store/yourBucketName/yourKey</code>
+
+Get value by key
+<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName/yourKey</code>
+
+Delete key-value pair in bucket
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName/yourKey</code>`
 	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
 	responseMsg.ParseMode = "HTML"
 	bot.Send(responseMsg)
