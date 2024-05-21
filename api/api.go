@@ -2,9 +2,11 @@ package api
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/gorilla/mux"
 	"go.etcd.io/bbolt"
@@ -12,10 +14,7 @@ import (
 
 var dataPath = "./data/"
 
-// SetDataPath sets the path for data
-func SetDataPath(path string) {
-	dataPath = path
-}
+const reservedBucket = "kvest-system-internal"
 
 func createBucket(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -139,8 +138,73 @@ func deleteKey(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func deleteBucket(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bucketName := vars["bucketName"]
+
+	db, err := openDb(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	err = db.Update(func(tx *bbolt.Tx) error {
+		return tx.DeleteBucket([]byte(bucketName))
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func RegisterRoutes(r *mux.Router) {
+	r.HandleFunc("/{bucketName}", createBucket).Methods("PUT")
+	r.HandleFunc("/{bucketName}", deleteBucket).Methods("DELETE")
+	r.HandleFunc("/{bucketName}/{key}", setKey).Methods("PUT")
+	r.HandleFunc("/{bucketName}/{key}", getValue).Methods("GET")
+	r.HandleFunc("/{bucketName}/{key}", deleteKey).Methods("DELETE")
+}
+
+func ApiKeyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.Header.Get("API-KEY")
+		if apiKey == "" {
+			http.Error(w, "Missing API key", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func DisableSystemBucketMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		bucketName := vars["bucketName"]
+
+		if bucketName == reservedBucket {
+			http.Error(w, "Bucket name 'system' not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		log.Printf("Started %s %s for %s", r.Method, r.RequestURI, r.RemoteAddr)
+
+		next.ServeHTTP(w, r)
+
+		log.Printf("Completed %s %s in %v", r.Method, r.RequestURI, time.Since(start))
+	})
+}
+
 func openDb(r *http.Request) (*bbolt.DB, error) {
-	apiKey := r.Header.Get("API-Key")
+	apiKey := r.Header.Get("API-KEY")
 	dbFile := filepath.Join(dataPath, apiKey+".db")
 
 	if _, err := os.Stat(dbFile); os.IsNotExist(err) {

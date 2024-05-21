@@ -1,9 +1,7 @@
 :80 {
 	reverse_proxy /api/* api:8080
-	reverse_proxy /admin/* api:8080
 }
 
 :443 {
 	reverse_proxy /api/* api:8080
-	reverse_proxy /admin/* api:8080
 }

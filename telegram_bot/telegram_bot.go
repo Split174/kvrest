@@ -4,28 +4,19 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"go.etcd.io/bbolt"
 )
 
 const dataPath = "./data/"
-const usersDbPath = dataPath + "users.db"
 
 func StartBot() {
-	/*userDB, err := bbolt.Open(usersDbPath, 0666, nil)
-	if err != nil {
-		log.Fatalf("Could not open users db: %s", err)
-	}
-	defer userDB.Close()
-
-	userDB.Update(func(tx *bbolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("users"))
-		return err
-	})*/
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
 	if err != nil {
@@ -49,6 +40,15 @@ func StartBot() {
 
 			case "change_api_key":
 				handleChangeApiKey(bot, update.Message)
+
+			case "view_bucket_keys":
+				handleViewBucketKeys(bot, update.Message)
+
+			case "list_buckets":
+				handleListBuckets(bot, update.Message)
+
+			case "download_kv":
+				handleDownloadKV(bot, update.Message)
 			}
 		}
 	}
@@ -57,67 +57,57 @@ func StartBot() {
 func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
 
-	// Open the database connection
-	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	// Construct the filename prefix based on the user's ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	// Check if any file starting with the constructed prefix exists
+	files, err := ioutil.ReadDir(dataPath)
 	if err != nil {
-		log.Printf("Error opening database: %s", err)
-		return
+		log.Fatal(err)
 	}
-	defer db.Close()
-
-	var apiKey string
-
-	db.View(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		apiKey = string(bucket.Get([]byte(fmt.Sprintf("%d", userID))))
-		return nil
-	})
-
-	if apiKey != "" {
-		response := "You already have an API key. Use /change_api_key to change it."
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
-		return
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "A KV already exists. Use /change_api_key"))
+			return
+		}
 	}
 
-	newApiKey, err := generateAPIKey()
+	apiKey, err := generateAPIKey()
 	if err != nil {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to generate API key"))
 		return
 	}
 
-	db.Update(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		return bucket.Put([]byte(fmt.Sprintf("%d", userID)), []byte(newApiKey))
-	})
+	// Create the BoltDB file
+	db, err := bbolt.Open(filepath.Join(dataPath, fmt.Sprintf("%d-%s.db", userID, apiKey)), 0666, nil)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to create database file"))
+		return
+	}
+	defer db.Close()
 
-	os.OpenFile(filepath.Join(dataPath, newApiKey+".db"), os.O_RDONLY|os.O_CREATE, 0666)
-
-	response := fmt.Sprintf("Your API key is: %s", newApiKey)
+	response := fmt.Sprintf("Your API key is: %s", fmt.Sprintf("%d-%s", userID, apiKey))
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
 }
 
 func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
 
-	// Open the database connection
-	db, err := bbolt.Open(usersDbPath, 0666, nil)
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
 	if err != nil {
-		log.Printf("Error opening database: %s", err)
-		return
+		log.Fatal(err)
 	}
-	defer db.Close()
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
 
-	var oldApiKey string
-
-	db.View(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		oldApiKey = string(bucket.Get([]byte(fmt.Sprintf("%d", userID))))
-		return nil
-	})
-
-	if oldApiKey == "" {
-		response := "You don't have an existing API key. Use /create_kv to create one."
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /create_kv"))
 		return
 	}
 
@@ -127,21 +117,126 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		return
 	}
 
-	db.Update(func(tx *bbolt.Tx) error {
-		bucket := tx.Bucket([]byte("users"))
-		return bucket.Put([]byte(fmt.Sprintf("%d", userID)), []byte(newApiKey))
-	})
-
-	oldDbFile := filepath.Join(dataPath, oldApiKey+".db")
-	newDbFile := filepath.Join(dataPath, newApiKey+".db")
+	oldDbFile := filepath.Join(dataPath, userDB)
+	newDbFile := filepath.Join(dataPath, fmt.Sprintf("%d-%s.db", userID, newApiKey))
 	err = os.Rename(oldDbFile, newDbFile)
 	if err != nil {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to rename database file"))
 		return
 	}
 
-	response := fmt.Sprintf("Your new API key is: %s", newApiKey)
+	response := fmt.Sprintf("Your new API key is: %s", fmt.Sprintf("%d-%s", userID, newApiKey))
 	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+}
+
+func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
+
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		return
+	}
+
+	// Get bucket name from the command arguments
+	commandArgs := strings.Fields(msg.Text)
+	if len(commandArgs) < 2 {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Please specify the bucket name using `/view_bucket BUCKET_NAME`"))
+		return
+	}
+	bucketName := commandArgs[1]
+
+	db, err := bbolt.Open(filepath.Join(dataPath, userDB), 0666, nil)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to open database file"))
+		return
+	}
+	defer db.Close()
+
+	var bucketContent string
+	err = db.View(func(tx *bbolt.Tx) error {
+		b := tx.Bucket([]byte(bucketName))
+		if b == nil {
+			return fmt.Errorf("bucket '%s' not found", bucketName)
+		}
+
+		c := b.Cursor()
+		for k, _ := c.First(); k != nil; k, _ = c.Next() {
+			bucketContent += fmt.Sprintf("%s\n", k)
+		}
+		return nil
+	})
+
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error: %s", err.Error())))
+		return
+	}
+
+	if bucketContent == "" {
+		bucketContent = fmt.Sprintf("Bucket '%s' is empty.", bucketName)
+	}
+
+	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, bucketContent))
+}
+
+func handleListBuckets(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
+
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		return
+	}
+
+	db, err := bbolt.Open(filepath.Join(dataPath, userDB), 0666, nil)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Failed to open database file."))
+		return
+	}
+	defer db.Close()
+
+	var bucketList string
+	err = db.View(func(tx *bbolt.Tx) error {
+		return tx.ForEach(func(name []byte, _ *bbolt.Bucket) error {
+			bucketList += fmt.Sprintf("- %s\n", name)
+			return nil
+		})
+	})
+
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error listing buckets: %s", err.Error())))
+		return
+	}
+
+	if bucketList == "" {
+		bucketList = "You have no buckets."
+	}
+
+	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Your buckets:\n%s", bucketList)))
 }
 
 func generateAPIKey() (string, error) {
@@ -150,4 +245,36 @@ func generateAPIKey() (string, error) {
 		return "", err
 	}
 	return hex.EncodeToString(bytes), nil
+}
+
+func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+
+	var userDB string
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = file.Name()
+			break
+		}
+	}
+
+	if userDB == "" {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		return
+	}
+
+	dbPath := filepath.Join(dataPath, userDB)
+
+	// Send the database file
+	doc := tgbotapi.NewDocument(msg.Chat.ID, tgbotapi.FilePath(dbPath))
+	_, err = bot.Send(doc)
+	if err != nil {
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error sending database file: %s", err.Error())))
+		return
+	}
 }
