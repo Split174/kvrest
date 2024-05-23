@@ -103,6 +103,26 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 
 </details>
 
+#### Listing all buckets
+
+<details>
+ <summary><code>GET</code> <code><b>/buckets/</b></code></summary>
+
+##### Responses
+
+> | http code     | content-type            | response                              |
+> |---------------|-------------------------|---------------------------------------|
+> | `200`         | `application/json` | `{"buckets": ["example-buckets1", "example-buckets2"]}`          |
+> | `500`         | `text/plain;charset=UTF-8` | `Internal Server Error`                |
+
+##### Example cURL
+
+> ```shell
+>  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets/
+> ```
+
+</details>
+
 #### Creating/updating a key-value pair in a bucket
 
 <details>
@@ -183,6 +203,33 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 
 > ```shell
 >  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey
+> ```
+
+</details>
+
+#### Listing all keys in a bucket
+
+<details>
+ <summary><code>GET</code> <code><b>/{bucketName}</b></code></summary>
+
+##### Parameters
+
+> | name        |  type     | data type   | description                 |
+> |-------------|-----------|-------------|-----------------------------|
+> | `bucketName` |  required | string      | Name of the bucket to list keys from |
+
+##### Responses
+
+> | http code     | content-type            | response                              |
+> |---------------|-------------------------|---------------------------------------|
+> | `200`         | `application/json` | `{"keys": ["example-key1", "example-key2"]}`          |
+> | `404`         | `text/plain;charset=UTF-8` | `Bucket not found`                     |
+> | `500`         | `text/plain;charset=UTF-8` | `Internal Server Error`                |
+
+##### Example cURL
+
+> ```shell
+>  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName
 > ```
 
 </details>

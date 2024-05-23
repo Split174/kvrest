@@ -160,12 +160,71 @@ func deleteBucket(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func listBuckets(w http.ResponseWriter, r *http.Request) {
+	db, err := openDb(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var buckets []string
+	err = db.View(func(tx *bbolt.Tx) error {
+		return tx.ForEach(func(bucketName []byte, _ *bbolt.Bucket) error {
+			if string(bucketName) != reservedBucket {
+				buckets = append(buckets, string(bucketName))
+			}
+			return nil
+		})
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"buckets": buckets})
+}
+
+func listKeys(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	bucketName := vars["bucketName"]
+
+	db, err := openDb(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer db.Close()
+
+	var keys []string
+	err = db.View(func(tx *bbolt.Tx) error {
+		bucket := tx.Bucket([]byte(bucketName))
+		if bucket == nil {
+			return bbolt.ErrBucketNotFound
+		}
+		return bucket.ForEach(func(k, v []byte) error {
+			keys = append(keys, string(k))
+			return nil
+		})
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string][]string{"keys": keys})
+}
+
 func RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/{bucketName}", createBucket).Methods("PUT")
 	r.HandleFunc("/{bucketName}", deleteBucket).Methods("DELETE")
+	r.HandleFunc("/buckets/", listBuckets).Methods("GET")
 	r.HandleFunc("/{bucketName}/{key}", setKey).Methods("PUT")
 	r.HandleFunc("/{bucketName}/{key}", getValue).Methods("GET")
 	r.HandleFunc("/{bucketName}/{key}", deleteKey).Methods("DELETE")
+	r.HandleFunc("/{bucketName}", listKeys).Methods("GET")
 }
 
 func ApiKeyMiddleware(next http.Handler) http.Handler {

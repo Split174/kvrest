@@ -128,6 +128,19 @@
             </div>
         </div>
         <div class="box">
+            <h3 class="title is-5">List All Buckets</h3>
+            <div class="content">
+                <pre><code>GET /buckets/</code></pre>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code>: Returns a list of all buckets in JSON format. Example: <code>{"buckets": ["example-buckets1", "example-buckets2"]}</code></li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets/</code></pre>
+            </div>
+        </div>
+        <div class="box">
             <h3 class="title is-5">Create/Update a Key-Value Pair</h3>
             <div class="content">
                 <pre><code>PUT /api/{bucketName}/{key}</code></pre>
@@ -135,7 +148,7 @@
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket</li>
                     <li><code>key</code> (required, string): Name of the key within the bucket</li>
-                    <li>Body (JSON): <code>{"key": "value"}</code></li>
+                    <li>Body (JSON): <code>{"foo": "bar"}</code></li>
                 </ul>
                 <p><strong>Responses:</strong></p>
                 <ul>
@@ -182,6 +195,24 @@
                 </ul>
                 <p><strong>Example cURL:</strong></p>
                 <pre><code>curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey</code></pre>
+            </div>
+        </div>
+        <div class="box">
+            <h3 class="title is-5">List All Keys in a Bucket</h3>
+            <div class="content">
+                <pre><code>GET /api/{bucketName}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket to list keys from</li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code>: Returns a list of all keys in the specified bucket in JSON format. Example: <code>{"keys": ["example-key1", "example-key2"]}</code></li>
+                    <li><code>404</code>: Bucket not found</li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName</code></pre>
             </div>
         </div>
     </div>
