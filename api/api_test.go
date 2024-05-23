@@ -15,7 +15,7 @@ import (
 
 var tempDir string
 var apiKey string
-var userRouter = mux.NewRouter()
+var routers = mux.NewRouter()
 
 // setupDatabase creates a temporary directory for the database files during testing.
 func setupDatabase() error {
@@ -28,8 +28,8 @@ func setupDatabase() error {
 	dataPath = tempDir
 	apiKey = "test-api-key"
 	os.OpenFile(filepath.Join(tempDir, fmt.Sprintf("%s.db", apiKey)), os.O_RDONLY|os.O_CREATE, 0666)
-	RegisterRoutes(userRouter)
-	userRouter.Use(DisableSystemBucketMiddleware)
+	RegisterRoutes(routers)
+	routers.Use(DisableSystemBucketMiddleware)
 	return nil
 }
 
@@ -49,7 +49,17 @@ func TestE2E(t *testing.T) {
 	req := httptest.NewRequest("PUT", "/testbucket", nil)
 	req.Header.Set("API-KEY", apiKey)
 	w := httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Failed to create bucket: %v", w.Body.String())
+	}
+
+	// Create a bucket2
+	req = httptest.NewRequest("PUT", "/testbucket2", nil)
+	req.Header.Set("API-KEY", apiKey)
+	w = httptest.NewRecorder()
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to create bucket: %v", w.Body.String())
@@ -61,7 +71,7 @@ func TestE2E(t *testing.T) {
 	req = httptest.NewRequest("PUT", "/testbucket/testkey", bytes.NewReader(valueBytes))
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to set key: %v", w.Body.String())
@@ -71,7 +81,7 @@ func TestE2E(t *testing.T) {
 	req = httptest.NewRequest("GET", "/testbucket/testkey", nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to get key: %v", w.Body.String())
@@ -83,21 +93,45 @@ func TestE2E(t *testing.T) {
 		t.Fatalf("Expected 'test', but got %v", getValueResponse["name"])
 	}
 
+	// Get bucket keys
+	req = httptest.NewRequest("GET", "/testbucket", nil)
+	req.Header.Set("API-KEY", apiKey)
+	w = httptest.NewRecorder()
+	routers.ServeHTTP(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("Failed to get keys in bucket: %v", w.Body.String())
+	}
+
+	json.NewDecoder(w.Body).Decode(&getValueResponse)
+	if len(getValueResponse["keys"].([]interface{})) != 1 || getValueResponse["keys"].([]interface{})[0] != "testkey" {
+		t.Fatalf("Expected 'testkey', but got %v", getValueResponse["keys"])
+	}
+
 	// Delete the key
 	req = httptest.NewRequest("DELETE", "/testbucket/testkey", nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to delete key: %v", w.Body.String())
+	}
+
+	// List buckets
+	req = httptest.NewRequest("GET", "/buckets/", nil)
+	req.Header.Set("API-KEY", apiKey)
+	w = httptest.NewRecorder()
+	routers.ServeHTTP(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("Failed to list bucket: %v", w.Body.String())
 	}
 
 	// Delete bucket
 	req = httptest.NewRequest("DELETE", "/testbucket", nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
 		t.Fatalf("Failed to delete bucket: %v", w.Body.String())
@@ -107,7 +141,7 @@ func TestE2E(t *testing.T) {
 	req = httptest.NewRequest("PUT", "/"+reservedBucket, nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
-	userRouter.ServeHTTP(w, req)
+	routers.ServeHTTP(w, req)
 
 	if w.Code != http.StatusMethodNotAllowed {
 		t.Fatalf("System bucket allowed create: %v", w.Body.String())

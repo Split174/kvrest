@@ -27,7 +27,29 @@ func StartBot() {
 	u.Timeout = 60
 
 	updates := bot.GetUpdatesChan(u)
-
+	cmdCfg := tgbotapi.NewSetMyCommands(
+		tgbotapi.BotCommand{
+			Command:     "start",
+			Description: "Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.",
+		},
+		tgbotapi.BotCommand{
+			Command:     "change_api_key",
+			Description: "Allows the user to change their existing API key. It generates a new API key, renames the BoltDB file with the new key, and sends the new API key to the user.",
+		},
+		tgbotapi.BotCommand{
+			Command:     "view_bucket_keys",
+			Description: "Allows the user to view the keys stored in a specific bucket within their KV store. The user needs to provide the name of the bucket they want to view.",
+		},
+		tgbotapi.BotCommand{
+			Command:     "list_buckets",
+			Description: "Lists all the buckets that the user has created in their KV store.",
+		},
+		tgbotapi.BotCommand{
+			Command:     "download_kv",
+			Description: "Allows the user to download their entire KV store as a BoltDB file. The bot will send the file directly to the user.",
+		},
+	)
+	bot.Send(cmdCfg)
 	for update := range updates {
 		if update.Message == nil {
 			continue
@@ -333,14 +355,20 @@ Create bucket
 Delete bucket
 <code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
 
+List of buckets
+<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/</code>
+
 Create/Update Key-Value pair in bucket
-<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/api/yourBucketName/yourKey</code>
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"foo": "bar"}' https://kvrest.dev/api/yourBucketName/yourKey</code>
 
 Get value by key
 <code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>
 
 Delete key-value pair in bucket
-<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>`
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>
+
+Get all keys in bucket
+<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>`
 	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
 	responseMsg.ParseMode = "HTML"
 	bot.Send(responseMsg)
