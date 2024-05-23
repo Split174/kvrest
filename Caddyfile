@@ -1,10 +1,4 @@
-:80 {
-	root * /var/www/kvrest
-  	file_server
-	reverse_proxy /api/* api:8080
-}
-
-:443 {
+kvrest.dev {
 	root * /var/www/kvrest
   	file_server
 	reverse_proxy /api/* api:8080

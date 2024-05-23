@@ -14,7 +14,7 @@ services:
     env_file:
       - .backuper.env
     environment:
-      - CRON_SCHEDULE=*/1 * * * *
+      - CRON_SCHEDULE=0 * * * *
       - BACKUP_NAME=kvrestbackup
     volumes:
       - kvrest_data:/data:ro #use ro to make sure the volume gets mounted read-only
