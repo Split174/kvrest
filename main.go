@@ -1,8 +1,8 @@
 package main
 
 import (
-	"kvest/api"
-	"kvest/telegram_bot"
+	"kvrest/api"
+	"kvrest/telegram_bot"
 	"log"
 	"net/http"
 	"os"

@@ -35,7 +35,10 @@ func StartBot() {
 
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
-			case "create_kv":
+			case "help":
+				handleHelp(bot, update.Message)
+
+			case "start":
 				handleCreateKV(bot, update.Message)
 
 			case "change_api_key":
@@ -67,7 +70,11 @@ func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), fileNamePrefix) {
-			bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "A KV already exists. Use /change_api_key"))
+			apiKey := strings.Replace(file.Name(), ".db", "", 1)
+			response := fmt.Sprintf("A KV already exists. Your API key: `%s`", apiKey)
+			responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+			responseMsg.ParseMode = "Markdown"
+			bot.Send(responseMsg)
 			return
 		}
 	}
@@ -86,8 +93,10 @@ func handleCreateKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	defer db.Close()
 
-	response := fmt.Sprintf("Your API key is: %s", fmt.Sprintf("%d-%s", userID, apiKey))
-	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	response := fmt.Sprintf("Your API key is: `%s`", fmt.Sprintf("%d-%s", userID, apiKey))
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "Markdown"
+	bot.Send(responseMsg)
 }
 
 func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
@@ -107,7 +116,7 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /create_kv"))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /start"))
 		return
 	}
 
@@ -125,8 +134,10 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		return
 	}
 
-	response := fmt.Sprintf("Your new API key is: %s", fmt.Sprintf("%d-%s", userID, newApiKey))
-	bot.Send(tgbotapi.NewMessage(msg.Chat.ID, response))
+	response := fmt.Sprintf("Your new API key is: `%s`", fmt.Sprintf("%d-%s", userID, newApiKey))
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "Markdown"
+	bot.Send(responseMsg)
 }
 
 func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
@@ -146,7 +157,7 @@ func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -208,7 +219,7 @@ func handleListBuckets(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -264,7 +275,7 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -277,4 +288,60 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, fmt.Sprintf("Error sending database file: %s", err.Error())))
 		return
 	}
+}
+
+func handleHelp(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+	userDB := "YOUR-API-KEY"
+	userID := msg.From.ID
+	fileNamePrefix := fmt.Sprintf("%d-", userID)
+	files, err := ioutil.ReadDir(dataPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), fileNamePrefix) {
+			userDB = strings.Replace(file.Name(), ".db", "", 1)
+			break
+		}
+	}
+
+	response := `<b>/help</b>
+Displays the documentation for all available commands to the user.
+
+<b>/start</b>
+Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.
+
+<b>/change_api_key</b>
+Allows the user to change their existing API key. It generates a new API key, renames the BoltDB file with the new key, and sends the new API key to the user.
+
+<b>/view_bucket_keys</b>
+Allows the user to view the keys stored in a specific bucket within their KV store. The user needs to provide the name of the bucket they want to view.
+
+<i>Usage:</i> <code>/view_bucket <b>BUCKET_NAME</b></code>
+
+<b>/list_buckets</b>
+Lists all the buckets that the user has created in their KV store.
+
+<b>/download_kv</b>
+Allows the user to download their entire KV store as a BoltDB file. The bot will send the file directly to the user.
+
+<b>API Examples</b>
+
+Create bucket
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
+
+Delete bucket
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
+
+Create/Update Key-Value pair in bucket
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/api/yourBucketName/yourKey</code>
+
+Get value by key
+<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>
+
+Delete key-value pair in bucket
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>`
+	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
+	responseMsg.ParseMode = "HTML"
+	bot.Send(responseMsg)
 }

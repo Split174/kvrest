@@ -14,7 +14,7 @@ import (
 
 var dataPath = "./data/"
 
-const reservedBucket = "kvest-system-internal"
+const reservedBucket = "kvrest-system-internal"
 
 func createBucket(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)

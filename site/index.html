@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>kvrest.dev - Simplified Key-Value Storage</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/1.0.1/css/bulma.min.css">
+</head>
+<body>
+
+<section class="hero is-dark is-bold">
+    <div class="hero-body">
+        <div class="container has-text-centered">
+            <h1 class="title">kvrest.dev</h1>
+            <h2 class="subtitle">Simplified Key-Value Storage with Telegram Integration</h2>
+            <p class="buttons is-centered">
+                <a href="https://t.me/kvrest_bot" class="button is-primary">
+                    <span>Start Using on Telegram</span>
+                </a>
+                <a href="#api-endpoints" class="button is-light">
+                    <span>API Documentation</span>
+                </a>
+                <a href="https://github.com/Split174/kvrest/" class="button is-link">
+                    <span>View on GitHub</span>
+                </a>
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <div class="columns">
+            <div class="column is-half">
+                <h2 class="title is-4">Why kvrest.dev?</h2>
+                <p>If you're tired of dealing with MongoDB, PostgreSQL, and other heavyweight databases for your small projects, kvrest.dev is here for you. The project focuses on simplicity to make coding fun again.</p>
+            </div>
+            <div class="column is-half">
+                <h2 class="title is-4">Get Started</h2>
+                <ol>
+                    <li><strong>Start the Telegram Bot</strong>: <a href="https://t.me/kvrest_bot">Launch kvreststore_bot</a></li>
+                    <li><strong>Send Command</strong>: Type and send `/start` in the bot to create your key-value store.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="title is-4">Telegram Bot Commands</h2>
+        <div class="columns is-multiline">
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">📚 <code>/help</code></h3>
+                    <p>Displays the documentation for all available commands.</p>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">🏗️ <code>/start</code></h3>
+                    <p>Creates a new key-value store. A unique API key and BoltDB file are generated.</p>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">🔑 <code>/change_api_key</code></h3>
+                    <p>Changes your existing API key. A new key is generated, and the BoltDB file is updated.</p>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">🔍 <code>/view_bucket_keys</code></h3>
+                    <p>View the keys stored in a specific bucket. Provide the bucket name.</p>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">📋 <code>/list_buckets</code></h3>
+                    <p>Lists all the buckets created in your key-value store.</p>
+                </div>
+            </div>
+            <div class="column is-4">
+                <div class="box">
+                    <h3 class="title is-5">📥 <code>/download_kv</code></h3>
+                    <p>Download your entire key-value store as a BoltDB file.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="api-endpoints" class="section">
+    <div class="container">
+        <h2 class="title is-4">API Endpoints</h2>
+        <div class="box">
+            <h3 class="title is-5">Create a New Bucket</h3>
+            <div class="content">
+                <pre><code>PUT /{bucketName}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket to create</li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code>: Bucket created successfully</li>
+                    <li><code>405</code>: Bucket name 'system' not allowed</li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X PUT -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName</code></pre>
+            </div>
+        </div>
+        <div class="box">
+            <h3 class="title is-5">Delete an Existing Bucket</h3>
+            <div class="content">
+                <pre><code>DELETE /{bucketName}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket to delete</li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code>: Bucket deleted successfully</li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName</code></pre>
+            </div>
+        </div>
+        <div class="box">
+            <h3 class="title is-5">Create/Update a Key-Value Pair</h3>
+            <div class="content">
+                <pre><code>PUT /{bucketName}/{key}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket</li>
+                    <li><code>key</code> (required, string): Name of the key within the bucket</li>
+                    <li>Body (JSON): <code>{"key": "value"}</code></li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code></li>
+                    <li><code>400</code>: Bad Request</li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X PUT -H "API-KEY: your_api_key" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/api/yourBucketName/yourKey</code></pre>
+            </div>
+        </div>
+        <div class="box">
+            <h3 class="title is-5">Retrieve a Value for a Key</h3>
+            <div class="content">
+                <pre><code>GET /{bucketName}/{key}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket</li>
+                    <li><code>key</code> (required, string): Name of the key within the bucket</li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code>: JSON object representing the value</li>
+                    <li><code>404</code>: Key not found</li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey</code></pre>
+            </div>
+        </div>
+        <div class="box">
+            <h3 class="title is-5">Delete a Key-Value Pair</h3>
+            <div class="content">
+                <pre><code>DELETE /{bucketName}/{key}</code></pre>
+                <p><strong>Parameters:</strong></p>
+                <ul>
+                    <li><code>bucketName</code> (required, string): Name of the bucket</li>
+                    <li><code>key</code> (required, string): Name of the key within the bucket</li>
+                </ul>
+                <p><strong>Responses:</strong></p>
+                <ul>
+                    <li><code>200</code></li>
+                    <li><code>500</code>: Internal Server Error</li>
+                </ul>
+                <p><strong>Example cURL:</strong></p>
+                <pre><code>curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey</code></pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container">
+        <h2 class="title is-4">Migrate to Your Server</h2>
+        <div class="box">
+            <p>Clone our repository and set up Docker:</p>
+            <pre><code>git clone https://github.com/Split174/kvrest.git
+cd kvrest
+docker-compose up -d</code></pre>
+            <p>Download the database file from the bot using <code>/download_db</code> and transfer it to your server:</p>
+            <pre><code>docker cp YOURKV.DB container_id:/data/YOURKV.DB</code></pre>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>
