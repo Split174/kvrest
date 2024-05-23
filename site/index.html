@@ -37,7 +37,7 @@
             <div class="column is-half">
                 <h2 class="title is-4">Get Started</h2>
                 <ol>
-                    <li><strong>Start the Telegram Bot</strong>: <a href="https://t.me/kvrest_bot">Launch kvreststore_bot</a></li>
+                    <li><strong>Start the Telegram Bot</strong>: <a href="https://t.me/kvrest_bot">Launch kvrest_bot</a></li>
                     <li><strong>Send Command</strong>: Type and send `/start` in the bot to create your key-value store.</li>
                 </ol>
             </div>
@@ -95,7 +95,7 @@
         <div class="box">
             <h3 class="title is-5">Create a New Bucket</h3>
             <div class="content">
-                <pre><code>PUT /{bucketName}</code></pre>
+                <pre><code>PUT /api/{bucketName}</code></pre>
                 <p><strong>Parameters:</strong></p>
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket to create</li>
@@ -113,7 +113,7 @@
         <div class="box">
             <h3 class="title is-5">Delete an Existing Bucket</h3>
             <div class="content">
-                <pre><code>DELETE /{bucketName}</code></pre>
+                <pre><code>DELETE /api/{bucketName}</code></pre>
                 <p><strong>Parameters:</strong></p>
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket to delete</li>
@@ -130,7 +130,7 @@
         <div class="box">
             <h3 class="title is-5">Create/Update a Key-Value Pair</h3>
             <div class="content">
-                <pre><code>PUT /{bucketName}/{key}</code></pre>
+                <pre><code>PUT /api/{bucketName}/{key}</code></pre>
                 <p><strong>Parameters:</strong></p>
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket</li>
@@ -150,7 +150,7 @@
         <div class="box">
             <h3 class="title is-5">Retrieve a Value for a Key</h3>
             <div class="content">
-                <pre><code>GET /{bucketName}/{key}</code></pre>
+                <pre><code>GET /api/{bucketName}/{key}</code></pre>
                 <p><strong>Parameters:</strong></p>
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket</li>
@@ -169,7 +169,7 @@
         <div class="box">
             <h3 class="title is-5">Delete a Key-Value Pair</h3>
             <div class="content">
-                <pre><code>DELETE /{bucketName}/{key}</code></pre>
+                <pre><code>DELETE /api/{bucketName}/{key}</code></pre>
                 <p><strong>Parameters:</strong></p>
                 <ul>
                     <li><code>bucketName</code> (required, string): Name of the bucket</li>
