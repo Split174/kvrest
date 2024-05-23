@@ -72,7 +72,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X PUT -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName
+>  curl -X PUT -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName
 > ```
 
 </details>
@@ -98,7 +98,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName
+>  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName
 > ```
 
 </details>
@@ -127,7 +127,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X PUT -H "API-KEY: your_api_key" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/yourBucketName/yourKey
+>  curl -X PUT -H "API-KEY: your_api_key" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/api/yourBucketName/yourKey
 > ```
 
 </details>
@@ -155,7 +155,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName/yourKey
+>  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey
 > ```
 
 </details>
@@ -182,7 +182,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName/yourKey
+>  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/api/yourBucketName/yourKey
 > ```
 
 </details>
