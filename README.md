@@ -22,15 +22,15 @@ This project provides a key-value storage API using Go and bbolt to store the da
 ## Cloud usage
 
 1. Start telegram bot - https://t.me/kvestore_bot
-2. Send /create_kv in bot
+2. Send /start in bot
 
 ## Telegram Bot Commands
 
 
-### `/docs`
+### `/help`
 Displays the documentation for all available commands to the user.
 
-### `/create_kv`
+### `/start`
 Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.
 
 ### `/change_api_key`

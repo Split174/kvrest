@@ -35,10 +35,10 @@ func StartBot() {
 
 		if update.Message.IsCommand() {
 			switch update.Message.Command() {
-			case "docs":
-				handleDocs(bot, update.Message)
+			case "help":
+				handleHelp(bot, update.Message)
 
-			case "create_kv":
+			case "start":
 				handleCreateKV(bot, update.Message)
 
 			case "change_api_key":
@@ -116,7 +116,7 @@ func handleChangeApiKey(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /create_kv"))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "KV does not exist. Use /start"))
 		return
 	}
 
@@ -157,7 +157,7 @@ func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -219,7 +219,7 @@ func handleListBuckets(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -275,7 +275,7 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 
 	if userDB == "" {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /create_kv to create one."))
+		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "You don't have a KV store. Use /start to create one."))
 		return
 	}
 
@@ -290,7 +290,7 @@ func handleDownloadKV(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 }
 
-func handleDocs(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
+func handleHelp(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	userDB := "YOUR-API-KEY"
 	userID := msg.From.ID
 	fileNamePrefix := fmt.Sprintf("%d-", userID)
@@ -305,10 +305,10 @@ func handleDocs(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 		}
 	}
 
-	response := `<b>/docs</b>
+	response := `<b>/help</b>
 Displays the documentation for all available commands to the user.
 
-<b>/create_kv</b>
+<b>/start</b>
 Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.
 
 <b>/change_api_key</b>
