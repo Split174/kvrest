@@ -1,4 +1,4 @@
-module kvest
+module kvrest
 
 go 1.21
 

@@ -300,7 +300,7 @@ func handleHelp(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	}
 	for _, file := range files {
 		if strings.HasPrefix(file.Name(), fileNamePrefix) {
-			userDB = file.Name()
+			userDB = strings.Replace(file.Name(), ".db", "", 1)
 			break
 		}
 	}
@@ -328,19 +328,19 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 <b>API Examples</b>
 
 Create bucket
-<code>curl -X PUT -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName</code>
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
 
 Delete bucket
-<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName</code>
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
 
 Create/Update Key-Value pair in bucket
-<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvest.store/yourBucketName/yourKey</code>
+<code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/api/yourBucketName/yourKey</code>
 
 Get value by key
-<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName/yourKey</code>
+<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>
 
 Delete key-value pair in bucket
-<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvest.store/yourBucketName/yourKey</code>`
+<code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/yourKey</code>`
 	responseMsg := tgbotapi.NewMessage(msg.Chat.ID, response)
 	responseMsg.ParseMode = "HTML"
 	bot.Send(responseMsg)

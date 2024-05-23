@@ -21,7 +21,7 @@ This project provides a key-value storage API using Go and bbolt to store the da
 
 ## Cloud usage
 
-1. Start telegram bot - https://t.me/kvestore_bot
+1. Start telegram bot - https://t.me/kvrest_bot
 2. Send /start in bot
 
 ## Telegram Bot Commands
@@ -72,7 +72,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X PUT -H "API-KEY: your_api_key" https://kvest.store/yourBucketName
+>  curl -X PUT -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName
 > ```
 
 </details>
@@ -98,7 +98,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X DELETE -H "API-KEY: your_api_key" https://kvest.store/yourBucketName
+>  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName
 > ```
 
 </details>
@@ -127,7 +127,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X PUT -H "API-KEY: your_api_key" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvest.store/yourBucketName/yourKey
+>  curl -X PUT -H "API-KEY: your_api_key" -H "Content-Type: application/json" --data '{"key": "value"}' https://kvrest.dev/yourBucketName/yourKey
 > ```
 
 </details>
@@ -155,7 +155,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X GET -H "API-KEY: your_api_key" https://kvest.store/yourBucketName/yourKey
+>  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName/yourKey
 > ```
 
 </details>
@@ -182,7 +182,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X DELETE -H "API-KEY: your_api_key" https://kvest.store/yourBucketName/yourKey
+>  curl -X DELETE -H "API-KEY: your_api_key" https://kvrest.dev/yourBucketName/yourKey
 > ```
 
 </details>
@@ -192,8 +192,8 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ## Migrate on your server
 
 > ```shell
-> git clone https://github.com/Split174/kvest.git
-> cd kvest
+> git clone https://github.com/Split174/kvrest.git
+> cd kvrest
 > docker-compose up -d
 > ```
 Download db file from bot `/download_db`.
