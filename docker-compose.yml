@@ -4,7 +4,7 @@ services:
   api:
     build: .
     volumes:
-      - /kvest_data:/app/data
+      - kvrest_data:/app/data
     env_file:
       - .env
     restart: always
@@ -14,10 +14,10 @@ services:
     env_file:
       - .backuper.env
     environment:
-      - CRON_SCHEDULE=*/24 * * * *
-      - BACKUP_NAME=kvestbackup
+      - CRON_SCHEDULE=*/1 * * * *
+      - BACKUP_NAME=kvrestbackup
     volumes:
-      - /kvest_data:/data:ro #use ro to make sure the volume gets mounted read-only
+      - kvrest_data:/data:ro #use ro to make sure the volume gets mounted read-only
     restart: always
 
   caddy:
@@ -28,10 +28,11 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - caddy_data:/data
+      - ./site/index.html:/var/www/kvrest/index.html
       - caddy_config:/config
     restart: always
 
 volumes:
-  kvest_data:
+  kvrest_data:
   caddy_data:
   caddy_config:

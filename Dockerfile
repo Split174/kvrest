@@ -14,17 +14,20 @@ RUN go mod download
 COPY . .
 
 # Build the Go app
-RUN go build -o kvest .
+RUN go build -o kvrest .
+
+##################################################################
 
 # Start a new stage from scratch
 FROM alpine:latest  
 
+WORKDIR /app
 
 # Copy the Pre-built binary file from the previous stage
-COPY --from=builder /app/kvest .
+COPY --from=builder /app/kvrest .
 #COPY --from=builder /app/data ./data
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
 
-CMD ["./kvest"]
+CMD ["./kvrest"]
