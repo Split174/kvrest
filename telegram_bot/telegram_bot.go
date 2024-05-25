@@ -33,6 +33,10 @@ func StartBot() {
 			Description: "Creates a new key-value (KV) store for the user. It generates a unique API key and creates a new BoltDB file to store the user's data. The API key is then sent back to the user.",
 		},
 		tgbotapi.BotCommand{
+			Command:     "help",
+			Description: "Displays the documentation for all available commands to the user.",
+		},
+		tgbotapi.BotCommand{
 			Command:     "change_api_key",
 			Description: "Allows the user to change their existing API key. It generates a new API key, renames the BoltDB file with the new key, and sends the new API key to the user.",
 		},
@@ -186,7 +190,9 @@ func handleViewBucketKeys(bot *tgbotapi.BotAPI, msg *tgbotapi.Message) {
 	// Get bucket name from the command arguments
 	commandArgs := strings.Fields(msg.Text)
 	if len(commandArgs) < 2 {
-		bot.Send(tgbotapi.NewMessage(msg.Chat.ID, "Please specify the bucket name using `/view_bucket BUCKET_NAME`"))
+		responseMsg := tgbotapi.NewMessage(msg.Chat.ID, "Please specify the bucket name using `/view_bucket BUCKET_NAME`")
+		responseMsg.ParseMode = "Markdown"
+		bot.Send(responseMsg)
 		return
 	}
 	bucketName := commandArgs[1]
@@ -356,7 +362,7 @@ Delete bucket
 <code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
 
 List of buckets
-<code>curl -X GET -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName/</code>
+<code>curl -X HEAD -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/buckets</code>
 
 Create/Update Key-Value pair in bucket
 <code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"foo": "bar"}' https://kvrest.dev/api/yourBucketName/yourKey</code>

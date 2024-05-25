@@ -130,14 +130,14 @@
         <div class="box">
             <h3 class="title is-5">List All Buckets</h3>
             <div class="content">
-                <pre><code>GET /buckets/</code></pre>
+                <pre><code>HEAD /buckets</code></pre>
                 <p><strong>Responses:</strong></p>
                 <ul>
                     <li><code>200</code>: Returns a list of all buckets in JSON format. Example: <code>{"buckets": ["example-buckets1", "example-buckets2"]}</code></li>
                     <li><code>500</code>: Internal Server Error</li>
                 </ul>
                 <p><strong>Example cURL:</strong></p>
-                <pre><code>curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets/</code></pre>
+                <pre><code>curl -X HEAD -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets</code></pre>
             </div>
         </div>
         <div class="box">
