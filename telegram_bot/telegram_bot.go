@@ -362,7 +362,7 @@ Delete bucket
 <code>curl -X DELETE -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/yourBucketName</code>
 
 List of buckets
-<code>curl -X HEAD -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/buckets</code>
+<code>curl -X POST -H "API-KEY: ` + userDB + `" https://kvrest.dev/api/buckets</code>
 
 Create/Update Key-Value pair in bucket
 <code>curl -X PUT -H "API-KEY: ` + userDB + `" -H "Content-Type: application/json" --data '{"foo": "bar"}' https://kvrest.dev/api/yourBucketName/yourKey</code>

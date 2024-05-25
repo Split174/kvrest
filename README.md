@@ -106,7 +106,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 #### Listing all buckets
 
 <details>
- <summary><code>HEAD</code> <code><b>/buckets</b></code></summary>
+ <summary><code>POST</code> <code><b>/buckets</b></code></summary>
 
 ##### Responses
 
@@ -118,7 +118,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X HEAD -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets
+>  curl -X POST -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets
 > ```
 
 </details>
@@ -238,14 +238,18 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 
 ## Migrate on your server
 
-> ```shell
-> git clone https://github.com/Split174/kvrest.git
-> cd kvrest
-> docker-compose up -d
-> ```
 Download db file from bot `/download_db`.
+
 > ```shell
-> docker cp YOURKV.DB container_id:/data/YOURKV.DB
+> mkdir -p ./kvrest && cp /file/from-bot/file.db ./kvrest/
+> cd ./kvrest/
+> docker run --rm -it -p 8080:8080 -v ${PWD}:/app/data ghcr.io/split174/kvrest:1.0.2
+> ```
+
+Test:
+
+> ```shell 
+> curl -X POST -H "API-KEY: DB-FILE-FROM-BOT" http://localhost:8080/api/buckets
 > ```
 
 ## Project Structure
