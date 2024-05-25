@@ -243,7 +243,7 @@ Download db file from bot `/download_db`.
 > ```shell
 > mkdir -p ./kvrest && cp /file/from-bot/file.db ./kvrest/
 > cd ./kvrest/
-> docker run --rm -it -p 8080:8080 -v ${PWD}:/app/data ghcr.io/split174/kvrest:1.0.2
+> docker run --rm -it -p 8080:8080 -v ${PWD}:/app/data ghcr.io/split174/kvrest:v1.0.1
 > ```
 
 Test:
