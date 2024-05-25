@@ -22,7 +22,9 @@ func main() {
 	}
 
 	// Start the Telegram bot in a separate goroutine
-	go telegram_bot.StartBot()
+	if os.Getenv("BOT_TOKEN") != "" {
+		go telegram_bot.StartBot()
+	}
 
 	// Define the main router
 	router := mux.NewRouter()

@@ -130,14 +130,14 @@
         <div class="box">
             <h3 class="title is-5">List All Buckets</h3>
             <div class="content">
-                <pre><code>HEAD /buckets</code></pre>
+                <pre><code>POST /buckets</code></pre>
                 <p><strong>Responses:</strong></p>
                 <ul>
                     <li><code>200</code>: Returns a list of all buckets in JSON format. Example: <code>{"buckets": ["example-buckets1", "example-buckets2"]}</code></li>
                     <li><code>500</code>: Internal Server Error</li>
                 </ul>
                 <p><strong>Example cURL:</strong></p>
-                <pre><code>curl -X HEAD -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets</code></pre>
+                <pre><code>curl -X POST -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets</code></pre>
             </div>
         </div>
         <div class="box">
@@ -222,12 +222,10 @@
     <div class="container">
         <h2 class="title is-4">Migrate to Your Server</h2>
         <div class="box">
-            <p>Clone our repository and set up Docker:</p>
-            <pre><code>git clone https://github.com/Split174/kvrest.git
-cd kvrest
-docker-compose up -d</code></pre>
-            <p>Download the database file from the bot using <code>/download_db</code> and transfer it to your server:</p>
-            <pre><code>docker cp YOURKV.DB container_id:/data/YOURKV.DB</code></pre>
+            <p>Download db file from bot <code>/download_db</code>.</p>
+            <pre><code>mkdir -p ./kvrest && cp /file/from-bot/file.db ./kvrest/
+cd ./kvrest/
+docker run --rm -it -p 8080:8080 -v ${PWD}:/app/data ghcr.io/split174/kvrest:1.0.2</code></pre>
         </div>
     </div>
 </section>
