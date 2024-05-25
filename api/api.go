@@ -220,7 +220,7 @@ func listKeys(w http.ResponseWriter, r *http.Request) {
 func RegisterRoutes(r *mux.Router) {
 	r.HandleFunc("/{bucketName}", createBucket).Methods("PUT")
 	r.HandleFunc("/{bucketName}", deleteBucket).Methods("DELETE")
-	r.HandleFunc("/buckets/", listBuckets).Methods("GET")
+	r.HandleFunc("/buckets", listBuckets).Methods("HEAD")
 	r.HandleFunc("/{bucketName}/{key}", setKey).Methods("PUT")
 	r.HandleFunc("/{bucketName}/{key}", getValue).Methods("GET")
 	r.HandleFunc("/{bucketName}/{key}", deleteKey).Methods("DELETE")

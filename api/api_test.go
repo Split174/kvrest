@@ -119,7 +119,7 @@ func TestE2E(t *testing.T) {
 	}
 
 	// List buckets
-	req = httptest.NewRequest("GET", "/buckets/", nil)
+	req = httptest.NewRequest("HEAD", "/buckets", nil)
 	req.Header.Set("API-KEY", apiKey)
 	w = httptest.NewRecorder()
 	routers.ServeHTTP(w, req)
