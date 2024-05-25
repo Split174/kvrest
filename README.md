@@ -106,7 +106,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 #### Listing all buckets
 
 <details>
- <summary><code>GET</code> <code><b>/buckets/</b></code></summary>
+ <summary><code>HEAD</code> <code><b>/buckets</b></code></summary>
 
 ##### Responses
 
@@ -118,7 +118,7 @@ Allows the user to download their entire KV store as a BoltDB file. The bot will
 ##### Example cURL
 
 > ```shell
->  curl -X GET -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets/
+>  curl -X HEAD -H "API-KEY: your_api_key" https://kvrest.dev/api/buckets
 > ```
 
 </details>
