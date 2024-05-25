@@ -1,6 +1,6 @@
 name: Upload Go test results
 
-on: [pull-request]
+on: [pull_request]
 
 jobs:
   build:
